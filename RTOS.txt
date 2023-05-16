@@ -1,0 +1,73 @@
+RTOS
+#include "includes.h"
+//#include "edutech.h"
+#include "uart.h"
+#include "lcd.h"
+
+OS_STK Task1Stack[100];
+void Task1(void *pdata);
+OS_STK Task2Stack[100];
+void Task2(void *pdata);
+OS_STK Task3Stack[100];
+void Task3(void *pdata);
+/* Main Program */
+int  main (void)
+{
+timer_init();
+OSInit();
+OSTaskCreate(Task1, (void *)0, &Task1Stack[99], 1);
+OSTaskCreate(Task2, (void *)0, &Task2Stack[99], 2);
+OSTaskCreate(Task3, (void *)0, &Task3Stack[99], 3);
+OSStart();
+//return 0;
+}
+/* Task Definition */
+/**
+* Task1 to Print 0 to 9 on LCD line1
+*/
+void Task1(void *pdata)
+{
+int i=0;
+Lcd_Init(); // Initialize LCD in 8bit mode
+Lcd_Cmd(0x80); // LCD Line1 cmd
+Lcd_String("numbers");
+while(1)
+{
+Lcd_Cmd(0x88);
+Lcd_Data(0x30 + i++);
+if(i==10) i=0;
+// LCD Line1 cmd
+OSTimeDlyHMSM(0, 0, 1, 0);
+}
+}
+/**
+* Task2 to Print A to Z on LCD line2 */
+void Task2(void *pdata)
+{
+int i=0;
+Lcd_Cmd(0xC0); // LCD Line2 cmd
+Lcd_String("alphabets");
+while(1)
+{
+Lcd_Cmd(0xCB);
+Lcd_Data(0x41 + i++);
+
+// LCD Line2 cmd
+if(i==26) i=0;
+OSTimeDlyHMSM(0, 0, 0, 500);
+}
+}
+
+/**
+* Task3 to Print 0 to 9 on UART0 */
+void Task3(void *pdata)
+{
+int i=0;
+Uart0_Init(4800);
+while(1)
+{
+uprintf("\x1b[1;1HTask3 %d04",i++);
+if(i==9999) i=0;
+OSTimeDlyHMSM(0, 0, 1, 0);
+}
+}
